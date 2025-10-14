@@ -15,7 +15,7 @@
       ></div>
     </div>
 
-    <div class="container mx-auto p-4 relative z-10">
+    <div class="mx-auto p-4 relative z-10">
       <div class="text-center mb-12">
         <h1
           class="text-7xl font-black bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 bg-clip-text text-transparent mb-4 animate-pulse flex items-center justify-center gap-4"
@@ -278,7 +278,7 @@
                   :key="scripture.reference"
                   @click="guessScripture(scripture.reference)"
                   :class="[
-                    'px-3 py-2 rounded-lg font-medium text-xl transition-all duration-300 transform hover:scale-105',
+                    'px-3 py-2 rounded-lg font-medium text-lg transition-all duration-300 transform hover:scale-105',
                     incorrectGuesses.includes(scripture.reference)
                       ? 'bg-red-500/80 text-white border border-red-400 animate-shake'
                       : 'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40',
