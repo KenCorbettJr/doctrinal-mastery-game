@@ -74,14 +74,16 @@
             </button>
           </div>
 
-          <button
-            @click="startGame"
-            :disabled="teams.length < 2"
-            class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600 text-white px-8 py-6 rounded-2xl font-bold text-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100 shadow-2xl disabled:opacity-50 animate-pulse hover:animate-none flex items-center justify-center gap-3"
-          >
-            <Gamepad2 class="w-8 h-8" />
-            START GAME
-          </button>
+          <div class="flex gap-4">
+            <button
+              @click="startGame"
+              :disabled="teams.length < 2"
+              class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600 text-white px-8 py-6 rounded-2xl font-bold text-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100 shadow-2xl disabled:opacity-50 animate-pulse hover:animate-none flex items-center justify-center gap-3"
+            >
+              <Gamepad2 class="w-8 h-8" />
+              START GAME
+            </button>
+          </div>
 
           <p class="text-center text-gray-300 mt-4 text-sm">
             Need at least 2 teams to start!
@@ -128,45 +130,95 @@
         </div>
       </div>
 
+      <!-- Congratulations Interstitial -->
+      <div
+        v-if="showCongratulations"
+        @click="closeCongratulations"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center cursor-pointer"
+      >
+        <div class="text-center animate-bounce-in">
+          <div class="mb-8 animate-spin-slow">
+            <Trophy class="w-32 h-32 text-yellow-400 mx-auto animate-pulse" />
+          </div>
+          <h2
+            class="text-8xl font-black bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 bg-clip-text text-transparent mb-6 animate-text-glow"
+          >
+            CORRECT!
+          </h2>
+          <div class="text-4xl text-white mb-4 animate-fade-in-up">
+            🎉 {{ correctAnswer?.team }} 🎉
+          </div>
+          <div class="text-2xl text-gray-300 mb-6 animate-fade-in-up-delay">
+            {{ correctAnswer?.reference }}
+          </div>
+          <div
+            class="text-6xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent animate-scale-up"
+          >
+            {{ correctAnswer?.points }} Points!
+          </div>
+          <div class="mt-8 text-lg text-gray-400 animate-fade-in-late">
+            Returning to categories...
+          </div>
+          <div class="mt-4 text-sm text-gray-500 animate-fade-in-late">
+            Click anywhere to continue
+          </div>
+        </div>
+      </div>
+
       <div v-else-if="gameState === 'play'" class="flex gap-8">
         <div class="w-3/4">
-          <div v-if="!selectedCategory" class="grid grid-cols-2 gap-6">
-            <button
-              v-for="column in Object.keys(scriptures)"
-              :key="column"
-              @click="selectColumn(column)"
-              :class="[
-                'group relative h-40 text-white rounded-3xl overflow-hidden transition-all duration-500 transform hover:scale-105 hover:rotate-1 shadow-2xl',
-                categoryColors[column],
-              ]"
-            >
-              <div
-                class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"
-              ></div>
-              <div
-                class="relative z-10 p-6 h-full flex flex-col justify-center items-center"
+          <div v-if="!selectedCategory">
+            <div class="flex justify-end mb-6">
+              <button
+                @click="resetGame"
+                class="bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white px-6 py-3 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 border border-red-500/20 flex items-center gap-2"
+                title="Start Over"
               >
-                <div class="mb-2">
-                  <component :is="getCategoryIcon(column)" class="w-12 h-12" />
-                </div>
-                <strong
-                  class="text-2xl font-black mb-2 group-hover:scale-110 transition-transform duration-300"
-                  >{{ column }}</strong
-                >
+                <Trash2 class="w-5 h-5" />
+                Start Over
+              </button>
+            </div>
+            <div class="grid grid-cols-2 gap-6">
+              <button
+                v-for="column in Object.keys(scriptures)"
+                :key="column"
+                @click="selectColumn(column)"
+                :class="[
+                  'group relative h-40 text-white rounded-3xl overflow-hidden transition-all duration-500 transform hover:scale-105 hover:rotate-1 shadow-2xl',
+                  categoryColors[column],
+                ]"
+              >
                 <div
-                  class="bg-white/20 rounded-full px-4 py-2 backdrop-blur-sm"
+                  class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"
+                ></div>
+                <div
+                  class="relative z-10 p-6 h-full flex flex-col justify-center items-center"
                 >
-                  <span class="font-bold"
-                    >{{ availableScriptures[column].length }} Remaining</span
+                  <div class="mb-2">
+                    <component
+                      :is="getCategoryIcon(column)"
+                      class="w-12 h-12"
+                    />
+                  </div>
+                  <strong
+                    class="text-2xl font-black mb-2 group-hover:scale-110 transition-transform duration-300"
+                    >{{ column }}</strong
                   >
+                  <div
+                    class="bg-white/20 rounded-full px-4 py-2 backdrop-blur-sm"
+                  >
+                    <span class="font-bold"
+                      >{{ availableScriptures[column].length }} Remaining</span
+                    >
+                  </div>
                 </div>
-              </div>
-              <div
-                class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              ></div>
-            </button>
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                ></div>
+              </button>
+            </div>
           </div>
-          <div v-else class="space-y-8">
+          <div v-else class="space-y-4">
             <div class="flex justify-between items-center mb-6">
               <button
                 @click="goBackToCategories"
@@ -186,23 +238,23 @@
             </div>
 
             <div
-              class="backdrop-blur-lg bg-white/10 rounded-3xl p-8 border border-white/20 shadow-2xl"
+              class="backdrop-blur-lg bg-white/10 rounded-2xl p-5 border border-white/20 shadow-2xl"
             >
               <h3
-                class="font-black text-2xl text-white mb-6 flex items-center gap-3"
+                class="font-black text-xl text-white mb-4 flex items-center gap-2"
               >
-                <BookOpen class="w-7 h-7" />
+                <BookOpen class="w-6 h-6" />
                 Current Scripture
                 <span
-                  class="ml-4 text-sm bg-purple-500/30 px-3 py-1 rounded-full"
+                  class="ml-3 text-xs bg-purple-500/30 px-2 py-1 rounded-full"
                   >{{ selectedCategory }}</span
                 >
               </h3>
               <div
-                class="bg-gradient-to-r from-yellow-400/10 to-orange-500/10 rounded-2xl p-6 border border-yellow-400/20"
+                class="bg-gradient-to-r from-yellow-400/10 to-orange-500/10 rounded-xl p-4 border border-yellow-400/20"
               >
                 <p
-                  class="text-left text-xl text-white leading-relaxed font-medium"
+                  class="text-left text-lg text-white leading-snug font-medium"
                 >
                   {{ currentScripture.text }}
                 </p>
@@ -210,24 +262,26 @@
             </div>
 
             <div
-              class="backdrop-blur-lg bg-white/10 rounded-3xl p-8 border border-white/20 shadow-2xl"
+              class="backdrop-blur-lg bg-white/10 rounded-2xl p-5 border border-white/20 shadow-2xl"
             >
               <h3
-                class="font-black text-2xl text-white mb-6 flex items-center gap-3"
+                class="font-black text-xl text-white mb-4 flex items-center gap-2"
               >
-                <Target class="w-7 h-7" />
+                <Target class="w-6 h-6" />
                 Choose the Reference
               </h3>
-              <div class="grid grid-cols-2 gap-4">
+              <div
+                class="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 max-h-[28rem]"
+              >
                 <button
                   v-for="scripture in availableScriptures[selectedCategory]"
                   :key="scripture.reference"
                   @click="guessScripture(scripture.reference)"
                   :class="[
-                    'px-6 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105',
+                    'px-3 py-2 rounded-lg font-medium text-xl transition-all duration-300 transform hover:scale-105',
                     incorrectGuesses.includes(scripture.reference)
-                      ? 'bg-red-500/80 text-white border-2 border-red-400 animate-shake'
-                      : 'bg-white/10 hover:bg-white/20 text-white border-2 border-white/20 hover:border-white/40',
+                      ? 'bg-red-500/80 text-white border border-red-400 animate-shake'
+                      : 'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40',
                   ]"
                 >
                   {{ scripture.reference }}
@@ -296,7 +350,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, onMounted, watch } from "vue";
 import {
   Zap,
   Rocket,
@@ -309,6 +363,9 @@ import {
   Cross,
   Book,
   Star,
+  Save,
+  Trash2,
+  X,
 } from "lucide-vue-next";
 
 const scriptures = reactive({
@@ -732,6 +789,11 @@ const currentScripture = ref(null);
 const availableScriptures = reactive({ ...scriptures });
 const scores = reactive({});
 const incorrectGuesses = ref([]);
+const showCongratulations = ref(false);
+const correctAnswer = ref(null);
+
+// LocalStorage functionality
+const STORAGE_KEY = "doctrinal-mastery-current-game";
 
 const addTeam = () => {
   if (currentTeam.value && !teams.value.includes(currentTeam.value)) {
@@ -772,21 +834,38 @@ const goBackToCategories = () => {
 const guessScripture = (reference) => {
   if (reference === currentScripture.value.reference) {
     scores[guessingTeam.value]++;
+    correctAnswer.value = {
+      team: guessingTeam.value,
+      reference: reference,
+      points: scores[guessingTeam.value],
+    };
+
     availableScriptures[selectedCategory.value] = availableScriptures[
       selectedCategory.value
     ].filter((s) => s.reference !== reference);
 
-    // Check if game is complete
-    const totalRemaining = Object.values(availableScriptures).reduce(
-      (sum, arr) => sum + arr.length,
-      0
-    );
-    if (totalRemaining === 0) {
-      gameState.value = "victory";
-    } else {
-      selectedCategory.value = "";
-      currentScripture.value = null;
-    }
+    // Show congratulations screen
+    showCongratulations.value = true;
+
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      showCongratulations.value = false;
+
+      // Check if game is complete
+      const totalRemaining = Object.values(availableScriptures).reduce(
+        (sum, arr) => sum + arr.length,
+        0
+      );
+      if (totalRemaining === 0) {
+        gameState.value = "victory";
+        // Clear saved game when game is complete
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        selectedCategory.value = "";
+        currentScripture.value = null;
+      }
+    }, 3000);
+
     incorrectGuesses.value = [];
   } else {
     incorrectGuesses.value.push(reference);
@@ -798,12 +877,17 @@ const onTeamSwitchClick = (team) => {
 };
 
 const resetGame = () => {
+  // Clear saved game
+  localStorage.removeItem(STORAGE_KEY);
+
   gameState.value = "setup";
   teams.value = [];
   currentTeam.value = "";
   selectedCategory.value = "";
   currentScripture.value = null;
   incorrectGuesses.value = [];
+  showCongratulations.value = false;
+  correctAnswer.value = null;
 
   // Reset available scriptures
   Object.keys(scriptures).forEach((category) => {
@@ -815,4 +899,92 @@ const resetGame = () => {
     delete scores[team];
   });
 };
+
+const closeCongratulations = () => {
+  showCongratulations.value = false;
+
+  // Check if game is complete
+  const totalRemaining = Object.values(availableScriptures).reduce(
+    (sum, arr) => sum + arr.length,
+    0
+  );
+  if (totalRemaining === 0) {
+    gameState.value = "victory";
+    // Clear saved game when game is complete
+    localStorage.removeItem(STORAGE_KEY);
+  } else {
+    selectedCategory.value = "";
+    currentScripture.value = null;
+  }
+};
+
+// Auto-save function
+const saveCurrentGame = () => {
+  if (gameState.value === "play" && teams.value.length > 0) {
+    const gameData = {
+      gameState: gameState.value,
+      teams: teams.value,
+      guessingTeam: guessingTeam.value,
+      selectedCategory: selectedCategory.value,
+      currentScripture: currentScripture.value,
+      availableScriptures: { ...availableScriptures },
+      scores: { ...scores },
+      incorrectGuesses: incorrectGuesses.value,
+      timestamp: new Date().toISOString(),
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(gameData));
+  }
+};
+
+// Load saved game on startup
+const loadSavedGame = () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const gameData = JSON.parse(saved);
+
+      gameState.value = gameData.gameState;
+      teams.value = [...gameData.teams];
+      guessingTeam.value = gameData.guessingTeam;
+      selectedCategory.value = gameData.selectedCategory || "";
+      currentScripture.value = gameData.currentScripture;
+
+      // Clear and repopulate availableScriptures
+      Object.keys(availableScriptures).forEach((key) => {
+        availableScriptures[key] = [...gameData.availableScriptures[key]];
+      });
+
+      // Clear and repopulate scores
+      Object.keys(scores).forEach((key) => delete scores[key]);
+      Object.assign(scores, gameData.scores);
+
+      incorrectGuesses.value = [...(gameData.incorrectGuesses || [])];
+    } catch (error) {
+      console.error("Error loading saved game:", error);
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+};
+
+// Watch for game state changes to trigger auto-save
+watch(
+  [
+    gameState,
+    teams,
+    scores,
+    availableScriptures,
+    guessingTeam,
+    selectedCategory,
+  ],
+  saveCurrentGame,
+  {
+    deep: true,
+  }
+);
+
+// Load saved game on mount
+onMounted(() => {
+  loadSavedGame();
+});
 </script>
