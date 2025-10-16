@@ -64,8 +64,12 @@
             :available-scriptures="availableScriptures"
             :guessing-team="guessingTeam"
             :incorrect-guesses="incorrectGuesses"
+            :correct-answer="correctAnswer"
+            :game-options="gameOptions"
+            :elimination-state="eliminationState"
             @back-to-categories="goBackToCategories"
             @guess-scripture="guessScripture"
+            @update-game-options="updateGameOptions"
           />
         </div>
 
@@ -123,6 +127,8 @@ const {
   incorrectGuesses,
   showCongratulations,
   correctAnswer,
+  gameOptions,
+  eliminationState,
   addTeam,
   removeTeam,
   startGame,
@@ -134,6 +140,7 @@ const {
   closeCongratulations: closeCongratulationsLogic,
   saveCurrentGame,
   loadSavedGame,
+  updateGameOptions: updateGameOptionsLogic,
 } = useGameLogic();
 
 // Wrapper functions to pass availableScriptures
@@ -151,6 +158,10 @@ const resetGame = () => {
 
 const closeCongratulations = () => {
   closeCongratulationsLogic(availableScriptures);
+};
+
+const updateGameOptions = (newOptions) => {
+  updateGameOptionsLogic(newOptions);
 };
 
 // Watch for game state changes to trigger auto-save

@@ -1,5 +1,6 @@
 <template>
-  <div class="max-w-2xl mx-auto">
+  <div class="max-w-2xl mx-auto space-y-6">
+    <!-- Team Setup Section -->
     <div
       class="backdrop-blur-lg bg-white/10 rounded-3xl p-8 border border-white/20 shadow-2xl"
     >
@@ -45,11 +46,29 @@
           Add Team
         </button>
       </div>
+    </div>
+
+    <!-- Game Options Section -->
+    <GameOptionsPanel v-model="gameOptions" :disabled="teams.length < 2" />
+
+    <!-- Start Game Section -->
+    <div
+      class="backdrop-blur-lg bg-white/10 rounded-3xl p-6 border border-white/20 shadow-2xl"
+    >
+      <div
+        v-if="validationError"
+        class="mb-4 bg-red-500/20 border border-red-500/50 rounded-xl p-4"
+      >
+        <p class="text-red-300 font-semibold flex items-center gap-2">
+          <AlertCircle class="w-4 h-4" />
+          {{ validationError }}
+        </p>
+      </div>
 
       <div class="flex gap-4">
         <button
-          @click="emit('start-game')"
-          :disabled="teams.length < 2"
+          @click="startGame"
+          :disabled="!canStartGame"
           class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600 text-white px-8 py-6 rounded-2xl font-bold text-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100 shadow-2xl disabled:opacity-50 animate-pulse hover:animate-none flex items-center justify-center gap-3"
         >
           <Gamepad2 class="w-8 h-8" />
@@ -58,17 +77,19 @@
       </div>
 
       <p class="text-center text-gray-300 mt-4 text-sm">
-        Need at least 2 teams to start!
+        {{ startGameMessage }}
       </p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { Rocket, Trophy, Plus, Gamepad2 } from "lucide-vue-next";
+import { ref, computed, onMounted } from "vue";
+import { Rocket, Trophy, Plus, Gamepad2, AlertCircle } from "lucide-vue-next";
+import GameOptionsPanel from "./GameOptionsPanel.vue";
+import { useGameOptions } from "../composables/useGameOptions.js";
 
-defineProps({
+const props = defineProps({
   teams: {
     type: Array,
     required: true,
@@ -78,11 +99,55 @@ defineProps({
 const emit = defineEmits(["add-team", "remove-team", "start-game"]);
 
 const currentTeam = ref("");
+const { gameOptions, initializeOptions, validateOptions, updateOptions } =
+  useGameOptions();
 
+// Initialize game options on component mount
+onMounted(() => {
+  initializeOptions();
+});
+
+// Validation logic
+const validationError = computed(() => {
+  if (props.teams.length < 2) {
+    return null; // Don't show validation errors until teams are ready
+  }
+
+  const errors = validateOptions(gameOptions.value);
+  if (errors.length > 0) {
+    return errors[0].message; // Show first error
+  }
+
+  return null;
+});
+
+const canStartGame = computed(() => {
+  return props.teams.length >= 2 && !validationError.value;
+});
+
+const startGameMessage = computed(() => {
+  if (props.teams.length < 2) {
+    return "Need at least 2 teams to start!";
+  }
+  if (validationError.value) {
+    return "Please fix game options configuration to continue.";
+  }
+  return "Ready to start!";
+});
+
+// Methods
 const addTeam = () => {
   if (currentTeam.value.trim()) {
     emit("add-team", currentTeam.value.trim());
     currentTeam.value = "";
+  }
+};
+
+const startGame = () => {
+  if (canStartGame.value) {
+    // Update the options in the composable before starting
+    updateOptions(gameOptions.value);
+    emit("start-game");
   }
 };
 </script>
